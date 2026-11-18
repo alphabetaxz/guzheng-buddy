@@ -9,6 +9,7 @@ import type { BoardZoom } from '../core/gameLevels';
 
 export interface GuzhengBoardProps {
   zoom: BoardZoom;
+  stringRange?: [number, number];
   targetStringNum: number | null;
   targetFinger?: FingeringType;
   pluckedStringNum: number | null;
@@ -25,6 +26,7 @@ export interface GuzhengBoardProps {
  */
 export function GuzhengBoard({
   zoom,
+  stringRange,
   targetStringNum,
   targetFinger = 'tuo',
   pluckedStringNum,
@@ -33,11 +35,15 @@ export function GuzhengBoard({
 }: GuzhengBoardProps) {
   const strings = useMemo(() => {
     const ordered = [...GUZHENG_21_STRINGS].reverse(); // 21 (top/far) -> 1 (bottom/near)
+    if (stringRange) {
+      const [minNum, maxNum] = stringRange;
+      return ordered.filter((s) => s.num >= minNum && s.num <= maxNum);
+    }
     if (zoom === 'focus') {
       return ordered.filter((s) => s.num >= 6 && s.num <= 13);
     }
     return ordered;
-  }, [zoom]);
+  }, [zoom, stringRange]);
 
   const fingerEmoji = FINGERING_META[targetFinger].emoji;
 
