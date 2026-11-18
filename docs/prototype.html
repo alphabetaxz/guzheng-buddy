@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes stringPluck {
+      0%, 100% { transform: translateY(0); }
+      20% { transform: translateY(-3.5px); }
+      40% { transform: translateY(3.5px); }
+      60% { transform: translateY(-2px); }
+      80% { transform: translateY(1.5px); }
+    }
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.65), 0 8px 20px -4px rgba(245, 158, 11, 0.45); }
+      50% { box-shadow: 0 0 0 8px rgba(251, 191, 36, 0), 0 12px 24px -4px rgba(245, 158, 11, 0.65); }
+    }
+    @keyframes rippleOut {
+      0% { transform: scale(0.4); opacity: 0.95; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+    .pluck-anim {
+      animation: stringPluck 0.32s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+    }
+    .float-slow {
+      animation: floatCard 2.6s ease-in-out infinite;
+    }
+    .glow-target {
+      animation: pulseGlow 1.6s infinite;
+    }
+    .ripple-ring {
+      animation: rippleOut 0.55s ease-out forwards;
+    }
+    /* Realistic Paulownia & Rosewood Guzheng Texture */
+    .guzheng-wood {
+      background:
+        repeating-linear-gradient(
+          3deg,
+          rgba(42, 20, 9, 0.08) 0px,
+          rgba(42, 20, 9, 0.08) 2px,
+          transparent 2px,
+          transparent 9px
+        ),
+        linear-gradient(180deg, #7A4B2A 0%, #965D36 28%, #834F2C 68%, #63391E 100%);
+      box-shadow: inset 0 6px 18px rgba(0,0,0,0.45), inset 0 -6px 16px rgba(0,0,0,0.45);
+    }
+    .rosewood-frame {
+      background: linear-gradient(180deg, #3A1C0E 0%, #241007 50%, #3A1C0E 100%);
+    }
+    /* 3D Claymorphic Card Button */
+    .clay-card {
+      box-shadow:
+        0 10px 20px -5px rgba(120, 70, 30, 0.15),
+        inset 0 2px 4px rgba(255, 255, 255, 0.9),
+        inset 0 -4px 6px rgba(0, 0, 0, 0.06);
+    }
+  </style>
+</head>
+<body class="bg-transparent text-[var(--foreground)] antialiased p-0 m-0 select-none">
+  <div class="py-1 space-y-2">
+    <!-- Top Prototype Navigation Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-1.5 pb-1.5 border-b border-[var(--card-border)] text-xs">
+      <div class="flex items-center gap-1 flex-wrap">
+        <button onclick="goScreen('home')" id="nav-home" class="px-2.5 py-1 rounded-md font-medium bg-[var(--primary)] text-[var(--primary-foreground)]">
+          🏠 1. 绘本首页
+        </button>
+        <button onclick="goScreen('theory')" id="nav-theory" class="px-2.5 py-1 rounded-md font-medium bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)]">
+          🎼 2. 乐理符号
+        </button>
+        <button onclick="goScreen('rhythm')" id="nav-rhythm" class="px-2.5 py-1 rounded-md font-medium bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)]">
+          🥁 3. 节奏感训练
+        </button>
+        <button onclick="goScreen('play')" id="nav-play" class="px-2.5 py-1 rounded-md font-medium bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)]">
+          🐍 4. 真琴认弦
+        </button>
+        <button onclick="goScreen('video')" id="nav-video" class="px-2.5 py-1 rounded-md font-medium bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)]">
+          🎬 5. 老师带练
+        </button>
+        <button onclick="goScreen('tuner')" id="nav-tuner" class="px-2.5 py-1 rounded-md font-medium bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)]">
+          🎛️ 6. 家长调音
+        </button>
+      </div>
+      <span id="sound-status" class="text-[var(--muted-foreground)]">✨ 点击琴弦或动物体验古筝泛音与涟漪</span>
+    </div>
+
+    <!-- Landscape Smartphone Outer Bezel (Sleek Metallic Titanium Frame) -->
+    <div class="relative mx-auto w-full max-w-[786px] h-[372px] rounded-[36px] p-[9px] bg-gradient-to-b from-neutral-700 via-neutral-900 to-neutral-800 shadow-2xl border border-neutral-600 flex items-center">
+      <!-- Left Camera & Speaker Pill -->
+      <div class="w-2.5 h-16 rounded-full bg-black/80 mr-2 flex flex-col items-center justify-center gap-2 shrink-0 border border-neutral-800">
+        <div class="w-1.5 h-1.5 rounded-full bg-sky-900/70 ring-1 ring-sky-500/30"></div>
+        <div class="w-1 h-5 rounded-full bg-neutral-800"></div>
+      </div>
+
+      <!-- Inner Screen Viewport -->
+      <div class="relative flex-1 h-full rounded-[27px] overflow-hidden bg-[#FFF9F0] text-stone-800 shadow-inner">
+
+        <!-- ==================== 1. 东方绘本风首页 ==================== -->
+        <div id="view-home" class="w-full h-full flex flex-col justify-between p-4 relative overflow-hidden"
+             style="background: radial-gradient(circle at 50% 0%, #FFFBEB 0%, #FDE68A 45%, #D1FAE5 100%);">
+          <!-- Decorative Distant Pastel Mountains & Clouds SVG Background -->
+          <svg class="absolute inset-x-0 bottom-0 w-full h-36 pointer-events-none opacity-65" viewBox="0 0 800 160" preserveAspectRatio="none">
+            <path d="M0,160 L0,95 Q120,30 260,90 T540,75 T800,95 L800,160 Z" fill="#A7F3D0" />
+            <path d="M0,160 L0,120 Q180,65 360,115 T720,90 L800,115 L800,160 Z" fill="#6EE7B7" />
+          </svg>
+
+          <!-- Top HUD Bar -->
+          <div class="relative z-10 flex items-center justify-between">
+            <!-- Glossy Star Counter Medallion -->
+            <div class="flex items-center gap-2 bg-white/95 backdrop-blur px-4 py-1.5 rounded-full shadow-md border-2 border-amber-300 clay-card">
+              <span class="text-xl drop-shadow">🌟</span>
+              <span class="font-black text-base text-amber-600 tracking-wide">12</span>
+            </div>
+
+            <!-- 5 Animal Jade Medallions (1 朵朵兔 / 2 小天鹅 / 3 小猫咪 / 5 绿小蛇 / 6 小考拉) -->
+            <div class="flex items-center gap-2.5 bg-white/85 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-md border border-white/80">
+              <button onclick="animalSpeak(293.66, '朵朵兔，Do')" class="group relative w-11 h-11 rounded-full bg-gradient-to-b from-red-50 to-red-200 border-2 border-red-400 shadow hover:-translate-y-0.5 active:scale-90 transition flex items-center justify-center">
+                <span class="text-xl">🐰</span>
+                <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center shadow">1</span>
+              </button>
+              <button onclick="animalSpeak(329.63, '小天鹅，Re')" class="group relative w-11 h-11 rounded-full bg-gradient-to-b from-orange-50 to-orange-200 border-2 border-orange-400 shadow hover:-translate-y-0.5 active:scale-90 transition flex items-center justify-center">
+                <span class="text-xl">🦢</span>
+                <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] font-black flex items-center justify-center shadow">2</span>
+              </button>
+              <button onclick="animalSpeak(369.99, '小猫咪，Mi')" class="group relative w-11 h-11 rounded-full bg-gradient-to-b from-yellow-50 to-amber-200 border-2 border-amber-400 shadow hover:-translate-y-0.5 active:scale-90 transition flex items-center justify-center">
+                <span class="text-xl">🐱</span>
+                <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white text-[10px] font-black flex items-center justify-center shadow">3</span>
+              </button>
+              <button onclick="animalSpeak(440.00, '绿小蛇，Sol')" class="group relative w-11 h-11 rounded-full bg-gradient-to-b from-emerald-50 to-emerald-200 border-2 border-emerald-500 shadow-md ring-2 ring-emerald-300/60 hover:-translate-y-0.5 active:scale-90 transition flex items-center justify-center">
+                <span class="text-xl">🐍</span>
+                <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center shadow">5</span>
+              </button>
+              <button onclick="animalSpeak(493.88, '小考拉，La')" class="group relative w-11 h-11 rounded-full bg-gradient-to-b from-purple-50 to-purple-200 border-2 border-purple-400 shadow hover:-translate-y-0.5 active:scale-90 transition flex items-center justify-center">
+                <span class="text-xl">🐨</span>
+                <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-purple-600 text-white text-[10px] font-black flex items-center justify-center shadow">6</span>
+              </button>
+            </div>
+
+            <!-- Subtle Parent Lock -->
+            <button onclick="goScreen('tuner')" class="w-10 h-10 rounded-full bg-white/80 hover:bg-white shadow border border-amber-200/80 flex items-center justify-center text-base active:scale-90 transition">
+              🔒
+            </button>
+          </div>
+
+          <!-- Center: 4 Exquisite 3D Storybook Island Cards -->
+          <div class="relative z-10 grid grid-cols-4 gap-4 max-w-[710px] w-full mx-auto my-auto">
+            <!-- Island 1: Music Theory Symbols -->
+            <button onclick="goScreen('theory')" class="clay-card h-48 rounded-[30px] bg-gradient-to-b from-white via-amber-50/60 to-amber-100/80 border-2 border-amber-300 border-b-[6px] border-b-amber-400 hover:-translate-y-1.5 active:translate-y-0 transition-all flex flex-col items-center justify-between p-3.5">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-300 to-orange-400 shadow-md flex items-center justify-center text-4xl float-slow border-2 border-white">
+                🎼
+              </div>
+              <!-- Custom SVG Calligraphy Fingering Badges -->
+              <div class="flex items-center gap-1.5 bg-white/90 px-3 py-1 rounded-2xl border border-amber-200 shadow-inner">
+                <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-900 font-serif font-black text-sm flex items-center justify-center">L</span>
+                <span class="w-6 h-6 rounded-lg bg-orange-100 text-orange-900 font-serif font-black text-sm flex items-center justify-center">\</span>
+                <span class="w-6 h-6 rounded-lg bg-yellow-100 text-yellow-900 font-serif font-black text-sm flex items-center justify-center">∧</span>
+              </div>
+              <div class="w-14 h-9 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white flex items-center justify-center text-base shadow-md border border-white/60">
+                ▶
+              </div>
+            </button>
+
+            <!-- Island 2: Rhythm Sense Training -->
+            <button onclick="goScreen('rhythm')" class="clay-card h-48 rounded-[30px] bg-gradient-to-b from-white via-rose-50/60 to-rose-100/80 border-2 border-rose-300 border-b-[6px] border-b-rose-400 hover:-translate-y-1.5 active:translate-y-0 transition-all flex flex-col items-center justify-between p-3.5">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-400 to-pink-500 shadow-md flex items-center justify-center text-4xl float-slow border-2 border-white">
+                🥁
+              </div>
+              <!-- 4 Lotus Beat Dots -->
+              <div class="flex items-center gap-1.5 bg-white/90 px-3 py-1.5 rounded-2xl border border-rose-200 shadow-inner">
+                <span class="w-4 h-4 rounded-full bg-rose-500 shadow-sm"></span>
+                <span class="w-4 h-4 rounded-full bg-rose-400"></span>
+                <span class="w-4 h-4 rounded-full bg-amber-400"></span>
+                <span class="w-4 h-4 rounded-full bg-emerald-400"></span>
+              </div>
+              <div class="w-14 h-9 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white flex items-center justify-center text-base shadow-md border border-white/60">
+                ▶
+              </div>
+            </button>
+
+            <!-- Island 3: Real Guzheng Strings -->
+            <button onclick="goScreen('play')" class="clay-card h-48 rounded-[30px] bg-gradient-to-b from-white via-emerald-50/60 to-emerald-100/80 border-2 border-emerald-300 border-b-[6px] border-b-emerald-500 hover:-translate-y-1.5 active:translate-y-0 transition-all flex flex-col items-center justify-between p-3.5">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 shadow-md flex items-center justify-center text-4xl float-slow border-2 border-white">
+                🐍
+              </div>
+              <!-- Mini Guzheng Bridge & Green String Illustration -->
+              <div class="w-24 bg-[#7A4B2A] px-2.5 py-1.5 rounded-xl border border-amber-900 shadow-inner flex flex-col gap-1">
+                <div class="h-0.5 bg-amber-100/80 rounded-full"></div>
+                <div class="h-1 bg-emerald-400 rounded-full shadow-[0_0_6px_#34d399]"></div>
+                <div class="h-0.5 bg-amber-100/80 rounded-full"></div>
+              </div>
+              <div class="w-14 h-9 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white flex items-center justify-center text-base shadow-md border border-white/60">
+                ▶
+              </div>
+            </button>
+
+            <!-- Island 4: Teacher Video Follow-Along -->
+            <button onclick="goScreen('video')" class="clay-card h-48 rounded-[30px] bg-gradient-to-b from-white via-purple-50/60 to-indigo-100/80 border-2 border-purple-300 border-b-[6px] border-b-purple-500 hover:-translate-y-1.5 active:translate-y-0 transition-all flex flex-col items-center justify-between p-3.5">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-400 to-indigo-500 shadow-md flex items-center justify-center text-4xl float-slow border-2 border-white">
+                🎬
+              </div>
+              <div class="flex items-center gap-1 bg-white/90 px-2.5 py-1 rounded-2xl border border-purple-200 text-base shadow-inner">
+                <span>🐰</span><span>🐰</span><span>🐍</span><span>🐍</span>
+              </div>
+              <div class="w-14 h-9 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white flex items-center justify-center text-base shadow-md border border-white/60">
+                ▶
+              </div>
+            </button>
+          </div>
+
+          <div class="h-1"></div>
+        </div>
+
+        <!-- ==================== 2. 乐理符号闯关（古风玉牌 + 书法指法符号） ==================== -->
+        <div id="view-theory" class="hidden w-full h-full flex flex-col justify-between p-3.5 relative overflow-hidden"
+             style="background: radial-gradient(circle at 50% 20%, #FFFBEB 0%, #FEF3C7 60%, #FDE68A 100%);">
+          <div class="flex items-center justify-between">
+            <button onclick="goScreen('home')" class="clay-card w-11 h-11 rounded-full bg-white border-2 border-amber-200 flex items-center justify-center text-xl active:scale-90 transition">
+              🏠
+            </button>
+
+            <div class="flex items-center gap-2 bg-white/90 p-1 rounded-full shadow-md border-2 border-amber-200">
+              <button onclick="setTheoryMode('symbol')" id="tmode-symbol" class="px-5 py-1 rounded-full text-sm font-black bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow flex items-center gap-1.5">
+                <span class="font-serif text-base">L \ ∧</span>
+                <span>👋</span>
+              </button>
+              <button onclick="setTheoryMode('octave')" id="tmode-octave" class="px-5 py-1 rounded-full text-sm font-black text-stone-600 flex items-center gap-1.5">
+                <span>5̇ · 5 · 5̣</span>
+                <span>🐍</span>
+              </button>
+            </div>
+
+            <div id="theory-stars" class="clay-card px-4 py-1.5 rounded-full bg-white border-2 border-amber-300 font-black text-base text-amber-600">
+              🌟 1
+            </div>
+          </div>
+
+          <div id="theory-stage" class="flex-1 my-2 flex flex-col items-center justify-between"></div>
+        </div>
+
+        <!-- ==================== 3. 🥁 节奏感训练（荷叶灯笼节拍器 + 中国红立鼓） ==================== -->
+        <div id="view-rhythm" class="hidden w-full h-full flex flex-col justify-between p-3.5 relative overflow-hidden"
+             style="background: radial-gradient(circle at 50% 20%, #FFF1F2 0%, #FFE4E6 55%, #FECDD3 100%);">
+          <div class="flex items-center justify-between">
+            <button onclick="stopMetronome(); goScreen('home')" class="clay-card w-11 h-11 rounded-full bg-white border-2 border-rose-200 flex items-center justify-center text-xl active:scale-90 transition">
+              🏠
+            </button>
+
+            <!-- 3 Rhythm Pattern Pills -->
+            <div class="flex items-center gap-2 bg-white/90 p-1 rounded-full shadow-md border-2 border-rose-200">
+              <button onclick="selectRhythmPattern(0)" id="rpat-0" class="px-4 py-1 rounded-full text-sm font-black bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow">
+                🐍 🐍 🐍 🐍
+              </button>
+              <button onclick="selectRhythmPattern(1)" id="rpat-1" class="px-4 py-1 rounded-full text-sm font-black text-stone-600">
+                🐰 — 🐍 —
+              </button>
+              <button onclick="selectRhythmPattern(2)" id="rpat-2" class="px-4 py-1 rounded-full text-sm font-black text-stone-600">
+                🐱 🐱 🐍 —
+              </button>
+            </div>
+
+            <button onclick="toggleMetronome()" id="btn-metro" class="clay-card px-4 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-sm border-2 border-white shadow-md flex items-center gap-1.5 active:scale-90">
+              <span id="metro-icon">▶️</span>
+              <span>🥁</span>
+            </button>
+          </div>
+
+          <!-- 4 Beat Lantern Cards -->
+          <div id="rhythm-track-grid" class="grid grid-cols-4 gap-4 max-w-[620px] w-full mx-auto my-auto"></div>
+
+          <!-- Bottom Chinese Tanggu Drum Pad -->
+          <div class="flex items-center justify-center pb-0.5">
+            <button onclick="playerTapBeat()" class="group relative w-64 h-20 rounded-full bg-gradient-to-b from-red-500 via-red-600 to-red-700 border-4 border-amber-300 border-b-[7px] border-b-amber-500 shadow-xl flex items-center justify-center gap-4 text-4xl active:translate-y-1 transition-all">
+              <!-- Decorative Golden Drum Studs -->
+              <span class="w-2 h-2 rounded-full bg-amber-300 absolute left-4 top-1/2 -translate-y-1/2"></span>
+              <span class="w-2 h-2 rounded-full bg-amber-300 absolute right-4 top-1/2 -translate-y-1/2"></span>
+              <span class="drop-shadow">🥁</span>
+              <span class="drop-shadow">👏</span>
+              <span id="rhythm-hit-badge" class="text-2xl">🌟</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ==================== 4. 真琴认弦（桐木纹理面板 + 翡翠/红木立体雁柱 + 丝弦涟漪） ==================== -->
+        <div id="view-play" class="hidden w-full h-full flex flex-col justify-between p-2.5 bg-gradient-to-b from-[#FFFDF9] to-[#F5E6C8]">
+          <!-- Top Bar -->
+          <div class="flex items-center justify-between px-1">
+            <button onclick="goScreen('home')" class="clay-card w-10 h-10 rounded-full bg-white border-2 border-amber-200 flex items-center justify-center text-lg active:scale-90">
+              🏠
+            </button>
+
+            <!-- Glowing Target Jade Pill -->
+            <button onclick="speakCurrentTarget()" class="clay-card flex items-center gap-3 bg-white px-5 py-1 rounded-full border-2 border-emerald-400 glow-target active:scale-95 transition">
+              <span id="target-animal-icon" class="text-3xl float-slow">🐍</span>
+              <span id="target-note-num" class="text-2xl font-black text-emerald-600">5</span>
+              <div class="h-5 w-0.5 bg-amber-200"></div>
+              <span id="target-finger-icon" class="text-2xl">👍</span>
+              <span class="text-base text-amber-500">🔊</span>
+            </button>
+
+            <button onclick="toggleZoom()" id="zoom-btn" class="clay-card w-10 h-10 rounded-full bg-white border-2 border-amber-200 flex items-center justify-center text-lg active:scale-90">
+              🔍
+            </button>
+          </div>
+
+          <!-- Masterpiece Top-Down Guzheng Soundboard -->
+          <div class="flex-1 mt-1.5 rounded-[22px] guzheng-wood border-4 border-[#3A1C0E] relative overflow-hidden flex flex-col justify-between py-2.5 px-3">
+            <!-- Left Decorative Brocade End (尾岳山/锦角) -->
+            <div class="absolute top-0 bottom-0 left-0 w-9 rosewood-frame border-r-2 border-amber-500/40 pointer-events-none flex flex-col items-center justify-between py-3">
+              <div class="w-3 h-3 rounded-full border border-amber-400/40"></div>
+              <div class="w-3 h-3 rounded-full border border-amber-400/40"></div>
+            </div>
+
+            <!-- Right-side 前岳山 (Rosewood & Gold Inlay Bridge Bar) -->
+            <div class="absolute top-0 bottom-0 right-12 w-3.5 rosewood-frame border-x border-amber-400/60 shadow-[0_0_12px_rgba(0,0,0,0.7)] pointer-events-none"></div>
+
+            <!-- Horizontal Strings Container -->
+            <div id="horizontal-guzheng-board" class="flex-1 flex flex-col justify-between relative z-10"></div>
+          </div>
+        </div>
+
+        <!-- ==================== 5. 老师带练（左视频横弦 === 右真琴横弦 1:1 水平对齐） ==================== -->
+        <div id="view-video" class="hidden w-full h-full flex flex-col justify-between p-2.5 bg-gradient-to-b from-[#FFFDF9] to-[#F5E6C8]">
+          <div class="flex items-center justify-between px-1">
+            <button onclick="goScreen('home')" class="clay-card w-10 h-10 rounded-full bg-white border-2 border-amber-200 flex items-center justify-center text-lg">
+              🏠
+            </button>
+            <div id="video-step-bubbles" class="flex items-center gap-3"></div>
+            <button onclick="resetVideoLesson()" class="clay-card w-10 h-10 rounded-full bg-white border-2 border-amber-200 flex items-center justify-center text-lg">
+              🔄
+            </button>
+          </div>
+
+          <div class="flex-1 grid grid-cols-12 gap-2.5 mt-1.5 overflow-hidden">
+            <!-- Left 5 cols: Overhead Teacher Video Frame -->
+            <div class="col-span-5 rounded-[22px] bg-stone-900 border-2 border-stone-700 shadow-lg relative overflow-hidden flex flex-col justify-between p-2.5">
+              <div id="video-canvas-box" class="flex-1 rounded-2xl guzheng-wood border border-amber-900/90 flex flex-col justify-between py-3 px-2 relative overflow-hidden">
+                <div class="absolute top-0 bottom-0 right-4 w-2.5 rosewood-frame border-x border-amber-400/50"></div>
+                <div class="h-0.5 bg-emerald-400/90 rounded-full"></div>
+                <div class="h-0.5 bg-amber-100/60 rounded-full"></div>
+                <div class="h-0.5 bg-amber-100/60 rounded-full relative">
+                  <span id="video-hand-11" class="hidden absolute right-7 -top-4 text-2xl float-slow drop-shadow">👍</span>
+                </div>
+                <div class="h-0.5 bg-amber-100/60 rounded-full"></div>
+                <div class="h-0.5 bg-amber-100/60 rounded-full"></div>
+                <div class="h-1 bg-emerald-400 rounded-full shadow-[0_0_8px_#34d399] relative">
+                  <span id="video-hand-8" class="absolute right-7 -top-4 text-2xl float-slow drop-shadow">👍</span>
+                </div>
+                <div class="h-0.5 bg-amber-100/60 rounded-full"></div>
+              </div>
+
+              <div class="mt-2 grid grid-cols-3 gap-2">
+                <button onclick="demoTeacherPhrase()" class="h-10 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white flex items-center justify-center text-xl shadow-md border border-white/30 active:scale-95">
+                  ▶️
+                </button>
+                <button onclick="toggleVideoSpeed()" id="btn-turtle" class="h-10 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white flex items-center justify-center text-xl shadow-md ring-2 ring-emerald-300 active:scale-95">
+                  🐢
+                </button>
+                <button onclick="toggleVideoMirror()" id="btn-mirror" class="h-10 rounded-xl bg-stone-700 text-white flex items-center justify-center text-xl shadow-md active:scale-95">
+                  🪞
+                </button>
+              </div>
+            </div>
+
+            <!-- Right 7 cols: Aligned Realistic Guzheng -->
+            <div class="col-span-7 rounded-[22px] guzheng-wood border-4 border-[#3A1C0E] py-3 px-2.5 flex flex-col justify-between relative overflow-hidden">
+              <div class="absolute top-0 bottom-0 left-0 w-8 rosewood-frame border-r border-amber-500/40 pointer-events-none"></div>
+              <div class="absolute top-0 bottom-0 right-11 w-3 rosewood-frame border-x border-amber-400/60 pointer-events-none"></div>
+              <div id="video-horizontal-strings" class="flex-1 flex flex-col justify-between relative z-10"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== 6. 家长调音器 ==================== -->
+        <div id="view-tuner" class="hidden w-full h-full flex flex-col justify-between p-3.5 bg-stone-900 text-white">
+          <div class="flex items-center justify-between">
+            <button onclick="goScreen('home')" class="w-10 h-10 rounded-full bg-stone-800 border border-stone-600 flex items-center justify-center text-lg">
+              🏠
+            </button>
+            <span class="text-xs text-stone-400">家长 21 弦调音器 (D调)</span>
+            <div class="w-10"></div>
+          </div>
+
+          <div class="my-auto max-w-sm w-full mx-auto bg-stone-800/90 rounded-3xl p-4 border border-stone-700 text-center shadow-xl">
+            <div id="tuner-string-name" class="text-2xl font-black text-emerald-400">
+              8 弦 🐍 (A4 · 440Hz)
+            </div>
+            <div class="mt-3 h-4 rounded-full bg-stone-950 relative overflow-hidden border border-stone-600">
+              <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-12 bg-emerald-500/30"></div>
+              <div class="absolute inset-y-0 left-[50%] w-3 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]"></div>
+            </div>
+          </div>
+
+          <div id="tuner-21-bar" class="flex items-center justify-between gap-1 bg-stone-800 p-1.5 rounded-2xl border border-stone-700 text-xs"></div>
+        </div>
+
+      </div>
+
+      <!-- Right Home Bar -->
+      <div class="w-1.5 h-20 rounded-full bg-neutral-700 ml-2 shrink-0"></div>
+    </div>
+  </div>
+
+  <script>
+    const ALL_21_STRINGS = [
+      { num: 21, jianpu: '1', animal: '🐰', voice: '朵朵兔', freq: 73.42,  green: false },
+      { num: 20, jianpu: '2', animal: '🦢', voice: '小天鹅', freq: 82.41,  green: false },
+      { num: 19, jianpu: '3', animal: '🐱', voice: '小猫咪', freq: 92.50,  green: false },
+      { num: 18, jianpu: '5', animal: '🐍', voice: '绿小蛇', freq: 110.00, green: true  },
+      { num: 17, jianpu: '6', animal: '🐨', voice: '小考拉', freq: 123.47, green: false },
+      { num: 16, jianpu: '1', animal: '🐰', voice: '朵朵兔', freq: 146.83, green: false },
+      { num: 15, jianpu: '2', animal: '🦢', voice: '小天鹅', freq: 164.81, green: false },
+      { num: 14, jianpu: '3', animal: '🐱', voice: '小猫咪', freq: 185.00, green: false },
+      { num: 13, jianpu: '5', animal: '🐍', voice: '绿小蛇', freq: 220.00, green: true  },
+      { num: 12, jianpu: '6', animal: '🐨', voice: '小考拉', freq: 246.94, green: false },
+      { num: 11, jianpu: '1', animal: '🐰', voice: '朵朵兔', freq: 293.66, green: false },
+      { num: 10, jianpu: '2', animal: '🦢', voice: '小天鹅', freq: 329.63, green: false },
+      { num: 9,  jianpu: '3', animal: '🐱', voice: '小猫咪', freq: 369.99, green: false },
+      { num: 8,  jianpu: '5', animal: '🐍', voice: '绿小蛇', freq: 440.00, green: true  },
+      { num: 7,  jianpu: '6', animal: '🐨', voice: '小考拉', freq: 493.88, green: false },
+      { num: 6,  jianpu: '1', animal: '🐰', voice: '朵朵兔', freq: 587.33, green: false },
+      { num: 5,  jianpu: '2', animal: '🦢', voice: '小天鹅', freq: 659.25, green: false },
+      { num: 4,  jianpu: '3', animal: '🐱', voice: '小猫咪', freq: 739.99, green: false },
+      { num: 3,  jianpu: '5', animal: '🐍', voice: '绿小蛇', freq: 880.00, green: true  },
+      { num: 2,  jianpu: '6', animal: '🐨', voice: '小考拉', freq: 987.77, green: false },
+      { num: 1,  jianpu: '1', animal: '🐰', voice: '朵朵兔', freq: 1174.66, green: false }
+    ];
+
+    let audioCtx = null;
+    function getAC() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!audioCtx) audioCtx = new AC();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playTone(freq, durationScale = 1.0) {
+      try {
+        const ctx = getAC();
+        const now = ctx.currentTime;
+        [
+          { r: 1, g: 0.36, d: 1.45 * durationScale },
+          { r: 2, g: 0.16, d: 0.85 * durationScale },
+          { r: 3, g: 0.07, d: 0.45 * durationScale }
+        ].forEach((h) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = h.r === 1 ? 'triangle' : 'sine';
+          osc.frequency.setValueAtTime(freq * h.r, now);
+          osc.frequency.exponentialRampToValueAtTime(freq * h.r * 1.007, now + 0.015);
+          osc.frequency.exponentialRampToValueAtTime(freq * h.r, now + 0.08);
+
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(h.g, now + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.0008, now + h.d);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + h.d + 0.04);
+        });
+      } catch (e) {}
+    }
+
+    function playWoodblock(isStrongBeat) {
+      try {
+        const ctx = getAC();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(isStrongBeat ? 920 : 680, now);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.06);
+        gain.gain.setValueAtTime(0.28, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.07);
+      } catch (e) {}
+    }
+
+    function speakVoice(text) {
+      document.getElementById('sound-status').textContent = '🔊 语音：“' + text + '”';
+      try {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = 'zh-CN';
+          u.rate = 0.95;
+          u.pitch = 1.2;
+          window.speechSynthesis.speak(u);
+        }
+      } catch (e) {}
+    }
+
+    function animalSpeak(freq, text) {
+      playTone(freq);
+      speakVoice(text);
+    }
+
+    function playWinChord() {
+      [440, 587.33, 739.99, 880].forEach((f, i) => setTimeout(() => playTone(f), i * 70));
+    }
+
+    function goScreen(id) {
+      if (id !== 'rhythm') stopMetronome();
+      ['home', 'theory', 'rhythm', 'play', 'video', 'tuner'].forEach((k) => {
+        document.getElementById('view-' + k).classList.toggle('hidden', k !== id);
+        document.getElementById('nav-' + k).className = k === id
+          ? 'px-2.5 py-1 rounded-md font-medium bg-[var(--primary)] text-[var(--primary-foreground)]'
+          : 'px-2.5 py-1 rounded-md font-medium bg-[var(--card)] text-[var(--foreground)] border border-[var(--border)]';
+      });
+      if (id === 'theory') renderTheoryStage();
+      if (id === 'rhythm') renderRhythmTrack();
+      if (id === 'play') renderHorizontalBoard();
+      if (id === 'video') renderVideoScreen();
+      if (id === 'tuner') renderTunerBar();
+    }
+
+    // ==================== SCREEN 2: 🎼 乐理符号闯关 ====================
+    let theoryMode = 'symbol';
+    let theoryStars = 1;
+
+    const SYMBOL_QUESTIONS = [
+      { symbol: 'L', answer: '👍', arrow: '⬆️', voice: '大指托，向外拨' },
+      { symbol: '\\', answer: '☝️', arrow: '⬇️', voice: '食指抹，向里弯' },
+      { symbol: '∧', answer: '👌', arrow: '⬇️', voice: '中指勾，像小山' }
+    ];
+    let symIdx = 0;
+
+    const OCTAVE_QUESTIONS = [
+      { display: '5̇', dotPos: 'top', freq: 880.00, icon: '🐦', voice: '头顶戴小点，高音绿小蛇！' },
+      { display: '5',  dotPos: 'mid', freq: 440.00, icon: '🐍', voice: '中间没有点，中音绿小蛇！' },
+      { display: '5̣', dotPos: 'bot', freq: 220.00, icon: '🐘', voice: '脚下踩小点，低音绿小蛇！' }
+    ];
+    let octIdx = 0;
+
+    function setTheoryMode(m) {
+      theoryMode = m;
+      ['symbol', 'octave'].forEach((k) => {
+        document.getElementById('tmode-' + k).className = k === m
+          ? 'px-5 py-1 rounded-full text-sm font-black bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow flex items-center gap-1.5'
+          : 'px-5 py-1 rounded-full text-sm font-black text-stone-600 flex items-center gap-1.5';
+      });
+      renderTheoryStage();
+    }
+
+    function renderTheoryStage() {
+      const stage = document.getElementById('theory-stage');
+      stage.innerHTML = '';
+
+      if (theoryMode === 'symbol') {
+        const q = SYMBOL_QUESTIONS[symIdx];
+        stage.innerHTML =
+          '<button onclick="speakVoice(\'' + q.voice + '\')" class="clay-card my-auto w-48 h-32 rounded-[32px] bg-gradient-to-b from-white to-amber-50 border-4 border-amber-400 flex items-center justify-center gap-3 float-slow glow-target">' +
+            '<span class="font-serif text-6xl font-black text-stone-800 drop-shadow">' + q.symbol + '</span>' +
+            '<span class="text-2xl text-amber-500">🔊</span>' +
+          '</button>' +
+          '<div class="grid grid-cols-3 gap-6 w-full max-w-[540px] pb-1">' +
+            SYMBOL_QUESTIONS.map((opt) =>
+              '<button onclick="checkSymbolAnswer(\'' + opt.symbol + '\')" class="clay-card h-24 rounded-[28px] bg-white hover:bg-amber-50 border-2 border-amber-200 border-b-[6px] border-b-amber-400 flex items-center justify-center gap-2 text-4xl active:translate-y-1 transition-all">' +
+                '<span>' + opt.answer + '</span>' +
+                '<span class="text-2xl">' + opt.arrow + '</span>' +
+              '</button>'
+            ).join('') +
+          '</div>';
+      } else {
+        const q = OCTAVE_QUESTIONS[octIdx];
+        stage.innerHTML =
+          '<button onclick="animalSpeak(' + q.freq + ', \'' + q.voice + '\')" class="clay-card my-auto w-48 h-32 rounded-[32px] bg-gradient-to-b from-white to-emerald-50 border-4 border-emerald-400 flex items-center justify-center gap-3 float-slow glow-target">' +
+            '<div class="flex flex-col items-center leading-none">' +
+              '<span class="text-2xl font-black text-emerald-600 h-4">' + (q.dotPos === 'top' ? '•' : '') + '</span>' +
+              '<span class="text-5xl font-black text-emerald-700">5</span>' +
+              '<span class="text-2xl font-black text-emerald-600 h-4">' + (q.dotPos === 'bot' ? '•' : '') + '</span>' +
+            '</div>' +
+            '<span class="text-4xl">🐍</span>' +
+            '<span class="text-xl text-amber-500">🔊</span>' +
+          '</button>' +
+          '<div class="grid grid-cols-3 gap-6 w-full max-w-[540px] pb-1">' +
+            OCTAVE_QUESTIONS.map((opt) =>
+              '<button onclick="checkOctaveAnswer(\'' + opt.dotPos + '\', ' + opt.freq + ')" class="clay-card h-24 rounded-[28px] bg-white hover:bg-emerald-50 border-2 border-emerald-200 border-b-[6px] border-b-emerald-400 flex items-center justify-center gap-2.5 text-4xl active:translate-y-1 transition-all">' +
+                '<span>' + opt.icon + '</span>' +
+                '<span class="text-2xl font-black text-emerald-700">' + opt.display + '</span>' +
+              '</button>'
+            ).join('') +
+          '</div>';
+      }
+    }
+
+    function checkSymbolAnswer(picked) {
+      const q = SYMBOL_QUESTIONS[symIdx];
+      if (picked === q.symbol) {
+        theoryStars++;
+        document.getElementById('theory-stars').textContent = '🌟 ' + theoryStars;
+        playWinChord();
+        speakVoice(q.voice);
+        setTimeout(() => {
+          symIdx = (symIdx + 1) % SYMBOL_QUESTIONS.length;
+          renderTheoryStage();
+        }, 700);
+      } else {
+        playTone(185.0);
+        speakVoice(q.voice);
+      }
+    }
+
+    function checkOctaveAnswer(pickedPos, freq) {
+      const q = OCTAVE_QUESTIONS[octIdx];
+      playTone(freq);
+      if (pickedPos === q.dotPos) {
+        theoryStars++;
+        document.getElementById('theory-stars').textContent = '🌟 ' + theoryStars;
+        setTimeout(() => playWinChord(), 250);
+        speakVoice(q.voice);
+        setTimeout(() => {
+          octIdx = (octIdx + 1) % OCTAVE_QUESTIONS.length;
+          renderTheoryStage();
+        }, 800);
+      } else {
+        speakVoice(q.voice);
+      }
+    }
+
+    // ==================== SCREEN 3: 🥁 节奏感训练 ====================
+    const RHYTHM_PATTERNS = [
+      [
+        { type: 'hit', animal: '🐍', jianpu: '5', freq: 440.00, hit: false },
+        { type: 'hit', animal: '🐍', jianpu: '5', freq: 440.00, hit: false },
+        { type: 'hit', animal: '🐍', jianpu: '5', freq: 440.00, hit: false },
+        { type: 'hit', animal: '🐍', jianpu: '5', freq: 440.00, hit: false }
+      ],
+      [
+        { type: 'hit',  animal: '🐰', jianpu: '1', freq: 293.66, hit: false },
+        { type: 'hold', animal: '〰️', jianpu: '—', freq: 293.66, hit: false },
+        { type: 'hit',  animal: '🐍', jianpu: '5', freq: 440.00, hit: false },
+        { type: 'hold', animal: '〰️', jianpu: '—', freq: 440.00, hit: false }
+      ],
+      [
+        { type: 'hit',  animal: '🐱', jianpu: '3', freq: 369.99, hit: false },
+        { type: 'hit',  animal: '🐱', jianpu: '3', freq: 369.99, hit: false },
+        { type: 'hit',  animal: '🐍', jianpu: '5', freq: 440.00, hit: false },
+        { type: 'hold', animal: '〰️', jianpu: '—', freq: 440.00, hit: false }
+      ]
+    ];
+    let curPatternIdx = 0;
+    let activeBeat = 0;
+    let metroTimer = null;
+
+    function selectRhythmPattern(idx) {
+      curPatternIdx = idx;
+      RHYTHM_PATTERNS[curPatternIdx].forEach((b) => { b.hit = false; });
+      activeBeat = 0;
+      [0, 1, 2].forEach((i) => {
+        document.getElementById('rpat-' + i).className = i === idx
+          ? 'px-4 py-1 rounded-full text-sm font-black bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow'
+          : 'px-4 py-1 rounded-full text-sm font-black text-stone-600';
+      });
+      renderRhythmTrack();
+    }
+
+    function renderRhythmTrack() {
+      const grid = document.getElementById('rhythm-track-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      const beats = RHYTHM_PATTERNS[curPatternIdx];
+
+      beats.forEach((b, idx) => {
+        const isCurrent = idx === activeBeat;
+        const card = document.createElement('div');
+        card.className = 'clay-card h-32 rounded-[30px] flex flex-col items-center justify-center gap-1 border-2 border-b-[6px] transition-all ' +
+          (isCurrent
+            ? 'bg-gradient-to-b from-amber-100 to-amber-200 border-rose-400 border-b-rose-500 scale-105 glow-target'
+            : b.hit
+              ? 'bg-gradient-to-b from-emerald-50 to-emerald-100 border-emerald-300 border-b-emerald-500'
+              : 'bg-white border-rose-200 border-b-rose-300');
+
+        card.innerHTML =
+          '<div class="text-4xl ' + (isCurrent ? 'float-slow' : '') + '">' + (b.hit ? '🌟' : b.animal) + '</div>' +
+          '<div class="text-2xl font-black text-stone-800">' + b.jianpu + '</div>' +
+          '<span class="w-3 h-3 rounded-full mt-0.5 ' + (isCurrent ? 'bg-rose-500 shadow-[0_0_8px_#f43f5e]' : 'bg-stone-300') + '"></span>';
+        grid.appendChild(card);
+      });
+    }
+
+    function toggleMetronome() {
+      if (metroTimer) {
+        stopMetronome();
+      } else {
+        activeBeat = 0;
+        RHYTHM_PATTERNS[curPatternIdx].forEach((b) => { b.hit = false; });
+        document.getElementById('metro-icon').textContent = '⏸️';
+        tickBeat();
+        metroTimer = setInterval(() => {
+          activeBeat = (activeBeat + 1) % 4;
+          if (activeBeat === 0) {
+            RHYTHM_PATTERNS[curPatternIdx].forEach((b) => { b.hit = false; });
+          }
+          tickBeat();
+        }, 750);
+      }
+    }
+
+    function tickBeat() {
+      playWoodblock(activeBeat === 0);
+      renderRhythmTrack();
+    }
+
+    function stopMetronome() {
+      if (metroTimer) {
+        clearInterval(metroTimer);
+        metroTimer = null;
+      }
+      const icon = document.getElementById('metro-icon');
+      if (icon) icon.textContent = '▶️';
+    }
+
+    function playerTapBeat() {
+      const beats = RHYTHM_PATTERNS[curPatternIdx];
+      const cur = beats[activeBeat];
+      cur.hit = true;
+      playTone(cur.freq, cur.type === 'hold' ? 1.6 : 0.9);
+      renderRhythmTrack();
+
+      if (!metroTimer) {
+        activeBeat = (activeBeat + 1) % 4;
+        if (activeBeat === 0) {
+          playWinChord();
+          setTimeout(() => {
+            beats.forEach((b) => { b.hit = false; });
+            renderRhythmTrack();
+          }, 500);
+        } else {
+          setTimeout(() => renderRhythmTrack(), 250);
+        }
+      }
+    }
+
+    // ==================== SCREEN 4: MASTERPIECE HORIZONTAL GUZHENG ====================
+    let boardZoom = 'focus';
+    const TARGET_POOL = [
+      { num: 8,  finger: '👍', voice: '大指托，第八弦，绿小蛇' },
+      { num: 9,  finger: '☝️', voice: '食指抹，第九弦，小猫咪' },
+      { num: 7,  finger: '👍', voice: '大指托，第七弦，小考拉' },
+      { num: 11, finger: '👍', voice: '大指托，第十一弦，朵朵兔' },
+      { num: 13, finger: '👌', voice: '中指勾，第十三弦，绿小蛇' }
+    ];
+    let targetIdx = 0;
+
+    function toggleZoom() {
+      boardZoom = boardZoom === 'focus' ? 'full' : 'focus';
+      document.getElementById('zoom-btn').textContent = boardZoom === 'focus' ? '🔍' : '🔎';
+      renderHorizontalBoard();
+    }
+
+    function speakCurrentTarget() {
+      const t = TARGET_POOL[targetIdx];
+      const s = ALL_21_STRINGS.find((x) => x.num === t.num);
+      playTone(s.freq);
+      speakVoice(t.voice);
+    }
+
+    // Helper to create a 3D Jade or Rosewood Bridge (雁柱)
+    function create3DBridge(isGreen, isFocus, leftPct) {
+      const b = document.createElement('div');
+      b.style.left = leftPct + '%';
+      b.className = 'absolute -translate-x-1/2 rounded-[4px] flex items-center justify-center shadow-[0_3px_6px_rgba(0,0,0,0.65)] ' +
+        (isFocus ? 'w-4 h-5 ' : 'w-2.5 h-3 ') +
+        (isGreen
+          ? 'bg-gradient-to-b from-emerald-300 via-emerald-500 to-emerald-800 border border-emerald-200'
+          : 'bg-gradient-to-b from-[#E6B17E] via-[#B87333] to-[#5C3317] border border-amber-200/70');
+      // White ivory saddle slot in center of bridge
+      const slot = document.createElement('div');
+      slot.className = 'w-1 h-full bg-white/80 rounded-full';
+      b.appendChild(slot);
+      return b;
+    }
+
+    function renderHorizontalBoard() {
+      const container = document.getElementById('horizontal-guzheng-board');
+      container.innerHTML = '';
+
+      const targetObj = TARGET_POOL[targetIdx];
+      const targetStr = ALL_21_STRINGS.find((x) => x.num === targetObj.num);
+
+      document.getElementById('target-animal-icon').textContent = targetStr.animal;
+      document.getElementById('target-note-num').textContent = targetStr.jianpu;
+      document.getElementById('target-finger-icon').textContent = targetObj.finger;
+
+      const list = boardZoom === 'focus'
+        ? ALL_21_STRINGS.filter((s) => s.num >= 6 && s.num <= 13)
+        : ALL_21_STRINGS;
+
+      list.forEach((s) => {
+        const isTarget = s.num === targetObj.num;
+        const bridgeLeftPct = 20 + ((21 - s.num) / 20) * 48;
+
+        const row = document.createElement('div');
+        row.className = 'relative flex items-center w-full cursor-pointer rounded-full transition-all ' +
+          (boardZoom === 'focus' ? 'h-7 px-1 ' : 'h-3 px-1 ') +
+          (isTarget ? 'bg-amber-300/30 ring-2 ring-amber-300/90' : 'hover:bg-white/10');
+
+        row.onclick = () => {
+          row.classList.remove('pluck-anim');
+          void row.offsetWidth;
+          row.classList.add('pluck-anim');
+          playTone(s.freq);
+
+          if (isTarget) {
+            playWinChord();
+            speakVoice('太棒啦！');
+            setTimeout(() => {
+              targetIdx = (targetIdx + 1) % TARGET_POOL.length;
+              renderHorizontalBoard();
+            }, 750);
+          } else {
+            speakVoice(s.voice);
+          }
+        };
+
+        // Golden Engraved Number on Left Brocade
+        const leftNum = document.createElement('div');
+        leftNum.className = 'w-7 shrink-0 text-center font-black ' +
+          (boardZoom === 'focus' ? 'text-xs ' : 'text-[9px] leading-none ') +
+          (s.green ? 'text-emerald-300' : isTarget ? 'text-amber-300' : 'text-amber-200/75');
+        leftNum.textContent = s.num;
+
+        const lineWrap = document.createElement('div');
+        lineWrap.className = 'flex-1 relative flex items-center h-full';
+
+        // Silk String with Metallic/Jade Sheen
+        const line = document.createElement('div');
+        const thickness = s.num >= 14 ? 'h-[3.5px]' : s.num >= 7 ? 'h-[2.5px]' : 'h-[1.5px]';
+        line.className = 'w-full rounded-full ' + thickness + ' ' +
+          (s.green
+            ? 'bg-gradient-to-r from-emerald-300 via-emerald-400 to-emerald-300 shadow-[0_0_8px_#34d399]'
+            : isTarget
+              ? 'bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 shadow-[0_0_12px_#fcd34d]'
+              : 'bg-gradient-to-r from-stone-200 via-amber-50 to-stone-200 shadow-[0_1px_2px_rgba(0,0,0,0.6)]');
+
+        const bridge = create3DBridge(s.green, boardZoom === 'focus', bridgeLeftPct);
+
+        if (boardZoom === 'focus' || isTarget || s.green) {
+          const badge = document.createElement('div');
+          badge.className = 'absolute right-12 flex items-center gap-1 px-2.5 rounded-full shadow-md border ' +
+            (boardZoom === 'focus' ? 'text-base py-0.5 ' : 'text-xs py-0 ') +
+            (isTarget
+              ? 'bg-gradient-to-b from-amber-200 to-amber-400 border-white scale-110 glow-target'
+              : s.green
+                ? 'bg-gradient-to-b from-emerald-500 to-emerald-700 border-emerald-300 text-white'
+                : 'bg-stone-900/70 border-amber-200/30');
+          badge.textContent = isTarget ? (s.animal + targetObj.finger) : s.animal;
+          lineWrap.appendChild(badge);
+        }
+
+        lineWrap.appendChild(line);
+        lineWrap.appendChild(bridge);
+        row.appendChild(leftNum);
+        row.appendChild(lineWrap);
+        container.appendChild(row);
+      });
+    }
+
+    // ==================== SCREEN 5: TEACHER VIDEO SYNC ====================
+    const LESSON_NOTES = [
+      { num: 11, animal: '🐰', finger: '👍', freq: 293.66 },
+      { num: 11, animal: '🐰', finger: '☝️', freq: 293.66 },
+      { num: 8,  animal: '🐍', finger: '👍', freq: 440.00 },
+      { num: 8,  animal: '🐍', finger: '☝️', freq: 440.00 }
+    ];
+    let lessonStep = 2;
+    let slowVideo = true;
+    let mirrored = false;
+
+    function renderVideoScreen() {
+      const bubbles = document.getElementById('video-step-bubbles');
+      bubbles.innerHTML = '';
+      LESSON_NOTES.forEach((n, idx) => {
+        const done = idx < lessonStep;
+        const active = idx === lessonStep;
+        const b = document.createElement('div');
+        b.className = 'clay-card w-13 px-2.5 h-10 rounded-2xl flex items-center justify-center gap-0.5 text-lg border-2 transition-all ' +
+          (done
+            ? 'bg-emerald-100 border-emerald-400'
+            : active
+              ? 'bg-gradient-to-b from-amber-100 to-amber-300 border-amber-500 scale-110 glow-target'
+              : 'bg-white/70 border-stone-200 opacity-55');
+        b.textContent = done ? '🌟' : (n.animal + n.finger);
+        bubbles.appendChild(b);
+      });
+
+      const activeTarget = LESSON_NOTES[lessonStep];
+      document.getElementById('video-hand-11').classList.toggle('hidden', !activeTarget || activeTarget.num !== 11);
+      document.getElementById('video-hand-8').classList.toggle('hidden', !activeTarget || activeTarget.num !== 8);
+
+      const board = document.getElementById('video-horizontal-strings');
+      board.innerHTML = '';
+      const subset = ALL_21_STRINGS.filter((s) => s.num >= 7 && s.num <= 13);
+
+      subset.forEach((s) => {
+        const isCurrent = activeTarget && s.num === activeTarget.num;
+        const bridgeLeftPct = 18 + ((13 - s.num) / 6) * 40;
+
+        const row = document.createElement('div');
+        row.className = 'relative flex items-center h-8 px-1 rounded-full cursor-pointer transition-all ' +
+          (isCurrent ? 'bg-amber-300/30 ring-2 ring-amber-300' : 'hover:bg-white/10');
+
+        row.onclick = () => {
+          row.classList.remove('pluck-anim');
+          void row.offsetWidth;
+          row.classList.add('pluck-anim');
+          playTone(s.freq);
+
+          if (!activeTarget) {
+            resetVideoLesson();
+            return;
+          }
+          if (s.num === activeTarget.num) {
+            lessonStep++;
+            if (lessonStep >= LESSON_NOTES.length) {
+              playWinChord();
+              speakVoice('太棒啦！');
+            }
+            renderVideoScreen();
+          } else {
+            speakVoice(s.voice);
+          }
+        };
+
+        const leftNum = document.createElement('div');
+        leftNum.className = 'w-6 text-center text-xs font-black ' + (s.green ? 'text-emerald-300' : 'text-amber-100/80');
+        leftNum.textContent = s.num;
+
+        const lineWrap = document.createElement('div');
+        lineWrap.className = 'flex-1 relative flex items-center h-full';
+
+        const line = document.createElement('div');
+        line.className = 'w-full h-[3px] rounded-full ' +
+          (s.green ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : isCurrent ? 'bg-amber-300 shadow-[0_0_10px_#fcd34d]' : 'bg-amber-50/90 shadow');
+
+        const bridge = create3DBridge(s.green, true, bridgeLeftPct);
+
+        const badge = document.createElement('div');
+        badge.className = 'absolute right-11 px-2.5 py-0.5 rounded-full text-base border shadow ' +
+          (isCurrent
+            ? 'bg-gradient-to-b from-amber-200 to-amber-400 border-white scale-110 glow-target'
+            : s.green
+              ? 'bg-emerald-600 border-emerald-300'
+              : 'bg-stone-900/70 border-amber-200/30');
+        badge.textContent = isCurrent ? (s.animal + activeTarget.finger) : s.animal;
+
+        lineWrap.appendChild(line);
+        lineWrap.appendChild(bridge);
+        lineWrap.appendChild(badge);
+        row.appendChild(leftNum);
+        row.appendChild(lineWrap);
+        board.appendChild(row);
+      });
+    }
+
+    function resetVideoLesson() {
+      lessonStep = 0;
+      renderVideoScreen();
+    }
+
+    function demoTeacherPhrase() {
+      LESSON_NOTES.forEach((n, i) => {
+        setTimeout(() => playTone(n.freq), i * (slowVideo ? 520 : 320));
+      });
+    }
+
+    function toggleVideoSpeed() {
+      slowVideo = !slowVideo;
+      document.getElementById('btn-turtle').className = slowVideo
+        ? 'h-10 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white flex items-center justify-center text-xl shadow-md ring-2 ring-emerald-300 active:scale-95'
+        : 'h-10 rounded-xl bg-stone-700 text-white/60 flex items-center justify-center text-xl shadow-md active:scale-95';
+    }
+
+    function toggleVideoMirror() {
+      mirrored = !mirrored;
+      document.getElementById('video-canvas-box').classList.toggle('scale-y-[-1]', mirrored);
+    }
+
+    // ==================== SCREEN 6: PARENT TUNER ====================
+    function renderTunerBar() {
+      const bar = document.getElementById('tuner-21-bar');
+      bar.innerHTML = '';
+      ALL_21_STRINGS.forEach((s) => {
+        const btn = document.createElement('button');
+        btn.className = 'flex-1 py-1.5 rounded-lg font-bold text-center transition ' +
+          (s.green ? 'bg-emerald-600 text-white border border-emerald-300' : 'bg-stone-700 hover:bg-stone-600 text-stone-200');
+        btn.textContent = s.num;
+        btn.onclick = () => {
+          playTone(s.freq);
+          document.getElementById('tuner-string-name').textContent =
+            s.num + ' 弦 ' + s.animal + ' (' + s.freq.toFixed(1) + 'Hz)';
+        };
+        bar.appendChild(btn);
+      });
+    }
+
+    renderTheoryStage();
+    renderRhythmTrack();
+    renderHorizontalBoard();
+  </script>
+</body>
+</html>

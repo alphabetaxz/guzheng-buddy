@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+coverage/
+*.tsbuildinfo
+
+# Capacitor generated native platforms (keep source config, ignore heavy build caches)
+android/.gradle/
+android/app/build/
+android/build/
+ios/App/Pods/
+ios/DerivedData/
+
+# Environment & OS
+.env
+.env.local
+.DS_Store
+*.log
